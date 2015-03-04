@@ -310,11 +310,11 @@ classdef baseStimulus < optickaCore & dynamicprops
 				draw(obj); %draw stimulus
 				drawGrid(s); %draw +-5 degree dot grid
 				drawScreenCenter(s); %centre spot
-				if benchmark; 
-					Screen('DrawText', s.win, 'Benchmark, screen will not update properly, see FPS on command window at end.', 5,5,[0 0 0]);
-				else
-					Screen('DrawText', s.win, 'Stimulus unanimated for 1 second, animated for 2, then unanimated for a final second...', 5,5,[0 0 0]);
-				end
+% 				if benchmark; 
+% 					Screen('DrawText', s.win, 'Benchmark, screen will not update properly, see FPS on command window at end.', 5,5,[0 0 0]);
+% 				else
+% 					Screen('DrawText', s.win, 'Stimulus unanimated for 1 second, animated for 2, then unanimated for a final second...', 5,5,[0 0 0]);
+% 				end
 				Screen('Flip',s.win);
 				WaitSecs(1);
 				if benchmark; b=GetSecs; end
