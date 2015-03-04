@@ -19,12 +19,15 @@ tS.askForComments = true; %==little UI requestor asks for comments before/after 
 tS.saveData = true; %==save behavioural and eye movement data?
 obj.useDataPixx = true; %==drive plexon to collect data?
 tS.dummyEyelink = false; %==use mouse as a dummy eyelink, good for testing away from the lab.
-tS.name = 'figure-ground'; %==name of this protocol
 tS.useMagStim = true; %enable the magstim manager
+tS.name = 'figure-ground'; %==name of this protocol
 
-%-----enable the magstimManager which uses FOI1 of the LabJack
+%-----enable the magstimManager which uses FOI2 of the LabJack
 if tS.useMagStim
 	mS = magstimManager('lJ',lJ,'defaultTTL',2);
+	mS.stimulateTime	= 240;
+	mS.frequency		= 0.7;
+	mS.rewardTime		= 25;
 	open(mS);
 end
 				
@@ -43,6 +46,7 @@ tS.targetFixInit = 3;
 tS.targetFixTime = [0.2 0.5];
 tS.targetRadius = 4;
 
+%------------------------Eyelink setup--------------------------
 eL.isDummy = tS.dummyEyelink; %use dummy or real eyelink?
 eL.name = tS.name;
 if tS.saveData == true; eL.recordData = true; end% save EDF file?
@@ -50,7 +54,7 @@ eL.sampleRate = 250;
 eL.remoteCalibration = true; % manual calibration?
 eL.calibrationStyle = 'HV5'; % calibration style
 eL.modify.calibrationtargetcolour = [1 1 1];
-eL.modify.calibrationtargetsize = 1;
+eL.modify.calibrationtargetsize = 0.5;
 eL.modify.calibrationtargetwidth = 0.1;
 eL.modify.waitformodereadytime = 500;
 eL.modify.devicenumber = -1; % -1 = use any keyboard
@@ -213,16 +217,21 @@ breakEntryFcn = { @()statusMessage(eL,'Broke Fixation :-('); ...%status message 
 	};
 
 %calibration function
-calibrateFcn = { @()setOffline(eL); @()rstop(io); @()trackerSetup(eL) }; %enter tracker calibrate/validate setup mode
+calibrateFcn = { @()drawBackground(s); ... %blank the display
+	@()setOffline(eL); @()rstop(io); @()trackerSetup(eL) }; %enter tracker calibrate/validate setup mode
 
 %debug override
 overrideFcn = @()keyOverride(obj); %a special mode which enters a matlab debug state so we can manually edit object values
 
 %screenflash
-flashFcn = @()flashScreen(s, 0.2); % fullscreen flash mode for visual background activity detection
+flashFcn = { @()drawBackground(s); ...
+	@()flashScreen(s, 0.2); % fullscreen flash mode for visual background activity detection
+};
 
 %screenflash
-magstimFcn = @()stimulate(mS); % run the magstim
+magstimFcn = { @()drawBackground(s); ...
+	@()stimulate(mS); % run the magstim
+	};
 
 %show 1deg size grid
 gridFcn = @()drawGrid(s);
@@ -244,7 +253,7 @@ stateInfoTmp = { ...
 'calibrate' 'pause'		0.5		calibrateFcn	[]				[]				[]; ...
 'override'	'pause'		0.5		overrideFcn		[]				[]				[]; ...
 'flash'		'pause'		0.5		flashFcn			[]				[]				[]; ...
-'magstim'	'pause'		0.5		[]					magstimFcn	[]				[]; ...
+'magstim'	'prefix'		0.5		[]					magstimFcn	[]				[]; ...
 'showgrid'	'pause'		10			[]					gridFcn		[]				[]; ...
 };
 
